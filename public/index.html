@@ -1,0 +1,1454 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <link rel="icon" href="data:,">
+  <title>FindBack - Lost &amp; Found Platform</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,700;1,9..144,900&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box
+    }
+
+    :root {
+      --ink: #101820;
+      --paper: #edeff1;
+      --paper-card: #ffffff;
+      --accent: #e8501f;
+      --accent-light: #ffefe9;
+      --mute: #6b7681;
+      --border: #cbd3da;
+      --green: #1b8744;
+      --green-light: #eaf7ee;
+      --disp: 'Fraunces', Georgia, serif;
+    }
+
+    html { scroll-behavior: smooth }
+    body { font-family: 'Instrument Sans', system-ui, sans-serif; background: var(--paper); color: var(--ink); min-height: 100vh; overflow-x: hidden }
+    button, input, select, textarea { font: inherit; color: inherit }
+    :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px }
+
+    .shell { display: grid; grid-template-columns: minmax(380px, 5fr) 7fr; min-height: 100vh }
+
+    .rail {
+      background: var(--ink);
+      color: var(--paper);
+      clip-path: polygon(0 0, 100% 0, 88% 100%, 0 100%);
+      padding: 40px 100px 60px 44px;
+      display: flex;
+      flex-direction: column;
+      gap: 32px
+    }
+
+    @keyframes logoFloat { 0%, 100% { transform: rotate(-3deg) translateY(0px) } 50% { transform: rotate(-1deg) translateY(-5px) } }
+    @keyframes dotPulse { 0%, 100% { opacity: 0.9; transform: scale(1) } 50% { opacity: 1; transform: scale(1.25) } }
+
+    .logo { font-family: var(--disp); font-style: italic; font-weight: 900; font-size: 32px; color: var(--paper); text-decoration: none; display: inline-flex; align-items: center; gap: 10px; animation: logoFloat 4.2s ease-in-out infinite; width: max-content }
+    .logo svg { width: 40px; height: 40px; fill: none; stroke: var(--paper); stroke-width: 4; stroke-linecap: round }
+    .logo .dot { fill: var(--accent); stroke: none; animation: dotPulse 2s ease-in-out infinite }
+    .logo i { color: var(--accent); font-style: italic }
+
+    .user-rail-card { background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 18px; padding: 16px; display: flex; align-items: center; gap: 14px; backdrop-filter: blur(8px) }
+    .user-avatar { width: 46px; height: 46px; border-radius: 50%; background: var(--accent); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 18px }
+    .user-details { flex: 1; overflow: hidden }
+    .user-details strong { display: block; font-size: 15px; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+    .user-details span { display: block; font-size: 12px; color: #9eb0be; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+
+    .btn-ghost-sm { background: transparent; border: 1px solid rgba(255, 255, 255, 0.3); color: #fff; border-radius: 999px; padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer; transition: .2s }
+    .btn-ghost-sm:hover { background: var(--paper); color: var(--ink) }
+
+    .hero h1 { font-family: var(--disp); font-style: italic; font-weight: 900; font-size: clamp(36px, 4.2vw, 56px); line-height: .98; transform: rotate(-3deg); margin: 4px 0 0 -2px }
+    .hero p { margin-top: 16px; max-width: 32ch; color: #aab3bb; line-height: 1.5; font-size: 15px }
+
+    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 20px }
+    .stat:nth-child(even) { transform: translateY(16px) }
+    .stat { cursor: pointer; transition: all .2s; border-radius: 8px; padding: 8px }
+    .stat:hover { background: rgba(255, 255, 255, 0.05) }
+    .stat b { display: block; font-family: var(--disp); font-style: italic; font-weight: 900; font-size: 54px; line-height: 1; color: var(--paper) }
+    .stat:first-child b { color: var(--accent) }
+    .stat span { font-size: 13px; color: #aab3bb }
+
+    .feed { margin-top: 14px }
+    .feed-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px }
+    .feed h3 { font-family: var(--disp); font-style: italic; font-size: 19px }
+    .live-indicator { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: var(--green); background: rgba(27, 135, 68, .18); padding: 3px 8px; border-radius: 999px }
+    .live-pulse { width: 7px; height: 7px; background: var(--green); border-radius: 50%; animation: liveBlink 1.4s infinite }
+    @keyframes liveBlink { 0%, 100% { opacity: 1; transform: scale(1) } 50% { opacity: .3; transform: scale(.7) } }
+
+    .feed-row { display: grid; grid-template-columns: 10px 1fr auto; gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px dashed #35424e; font-size: 13px; cursor: pointer; transition: all .2s }
+    .feed-row:hover { background: rgba(255, 255, 255, 0.05); padding: 10px 6px; border-radius: 6px }
+    .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); flex: none }
+    .dot.found { background: transparent; border: 2px solid var(--paper) }
+    .feed small { color: #8b96a0; text-align: right }
+
+    .persona-bar { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 12px 18px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; gap: 14px; box-shadow: 0 3px 12px rgba(16, 24, 32, .04); font-size: 14px }
+    .persona-bar b { color: var(--accent) }
+    .persona-toggle-btn { background: var(--ink); color: var(--paper); border: 0; border-radius: 999px; padding: 6px 16px; font-size: 13px; font-weight: 600; cursor: pointer; transition: .2s }
+    .persona-toggle-btn:hover { background: var(--accent) }
+
+    .stage { padding: 44px 48px 64px 20px; max-width: 960px }
+
+    .tabs { position: relative; display: flex; align-items: center; gap: 16px; margin-bottom: 32px; padding-bottom: 14px; flex-wrap: wrap }
+    #ink { position: absolute; bottom: 0; left: 0; width: 0; height: 4px; border-radius: 999px; background: var(--accent); transition: left .4s cubic-bezier(.65, 0, .35, 1), width .4s cubic-bezier(.65, 0, .35, 1) }
+    .tab { background: none; border: 0; cursor: pointer; font-family: var(--disp); font-style: italic; font-weight: 700; font-size: 25px; color: var(--mute); padding: 4px 2px; transition: color .2s; display: inline-flex; align-items: center; gap: 8px }
+    .tab:hover { color: var(--ink) }
+    .tab.active { color: var(--ink) }
+    .badge-count { font-family: 'Instrument Sans', sans-serif; font-style: normal; font-size: 11px; font-weight: 700; background: var(--accent); color: #fff; padding: 2px 8px; border-radius: 999px }
+    .badge-count.hidden { display: none }
+    .slash { color: var(--accent); font-family: var(--disp); font-size: 25px; transform: skewX(-20deg) }
+
+    .section { display: none }
+    .section.active { display: block; animation: in .4s cubic-bezier(.22, 1, .36, 1) }
+    @keyframes in { from { opacity: 0; transform: translateX(20px) } to { opacity: 1; transform: none } }
+
+    .section h2 { font-family: var(--disp); font-style: italic; font-weight: 900; font-size: 38px; margin-bottom: 20px; line-height: 1 }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px 28px }
+    .full { grid-column: 1/-1 }
+    .field { display: flex; flex-direction: column; gap: 6px }
+    label { font-weight: 600; font-size: 13px; color: var(--mute); text-transform: uppercase; letter-spacing: .5px }
+    input, select, textarea { padding: 10px 4px; border: 0; border-bottom: 2px solid var(--border); background: transparent; border-radius: 0; font-size: 16px; transition: border-color .2s }
+    input:focus, select:focus, textarea:focus { outline: none; border-bottom-color: var(--accent) }
+    textarea { resize: vertical; min-height: 76px }
+
+    .location-wrapper { position: relative }
+    .location-dropdown { display: none; position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid var(--border); border-radius: 8px; max-height: 280px; overflow-y: auto; z-index: 100; box-shadow: 0 4px 12px rgba(16, 24, 32, .1); margin-top: 2px }
+    .location-dropdown.active { display: block }
+    .location-option { padding: 12px 14px; cursor: pointer; transition: background .2s; border-bottom: 1px solid #f0f0f0; font-size: 14px }
+    .location-option:hover { background: var(--accent-light) }
+    .location-input { padding: 10px 14px !important; border: 1px solid var(--border) !important; border-bottom: 2px solid var(--accent) !important; border-radius: 8px !important; background: #fff !important; font-size: 14px }
+    .stone-bench-note { display: none; padding: 12px; background: #fff9e6; border: 1px solid #fee199; border-radius: 8px; font-size: 13px; color: #725000; margin-top: 8px }
+    .stone-bench-note.show { display: block }
+
+    .types { display: flex; gap: 12px }
+    .types input { position: absolute; opacity: 0 }
+    .types label { padding: 10px 28px; border: 2px solid var(--ink); border-radius: 999px; cursor: pointer; font-weight: 600; font-size: 15px; color: var(--ink); transition: .2s }
+    .types input:checked+label { background: var(--ink); color: var(--paper) }
+
+    .photo-section { margin-top: 20px }
+    .photo-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap }
+    .btn { border: 0; border-radius: 999px; cursor: pointer; font-weight: 600; font-size: 15px; padding: 14px 34px; background: var(--accent); color: #fff; transition: transform .2s, background .2s }
+    .btn:hover { transform: rotate(-2deg) scale(1.02); background: #d74212 }
+    .btn-outline { background: transparent; border: 2px solid var(--ink); color: var(--ink); padding: 10px 22px }
+    .btn-outline:hover { background: var(--ink); color: var(--paper); transform: none }
+    .btn-sm { padding: 7px 18px; font-size: 13px }
+    .pill { border: 2px solid var(--ink); border-radius: 999px; background: transparent; padding: 9px 22px; font-weight: 600; font-size: 14px; cursor: pointer; transition: .2s; display: inline-flex; align-items: center; gap: 8px }
+    .pill:hover { background: var(--ink); color: var(--paper) }
+
+    .photo-preview { display: flex; align-items: center; gap: 12px; flex-wrap: wrap }
+    .thumb { width: 54px; height: 54px; border-radius: 50%; object-fit: cover; flex: none; border: 2px solid var(--border) }
+    .link { background: none; border: 0; color: var(--accent); font-weight: 600; cursor: pointer; padding: 2px 0; text-decoration: underline; text-underline-offset: 4px; width: max-content }
+    .submit { justify-self: start; margin-top: 20px }
+    .error-msg { color: #d74212; font-size: 13px; margin-top: 6px; display: none }
+    .error-msg.show { display: block }
+
+    .match-card { background: var(--paper-card); border: 1px solid var(--border); border-radius: 20px; padding: 24px; margin-bottom: 24px; box-shadow: 0 4px 16px rgba(16, 24, 32, .04) }
+    .match-grid { display: grid; grid-template-columns: 1fr auto 1fr auto; gap: 20px; align-items: center }
+    .match-grid .vs { font-family: var(--disp); font-style: italic; font-size: 32px; color: var(--accent); transform: skewX(-20deg) }
+    .match-col small { font-weight: 700; color: var(--accent); font-size: 12px; text-transform: uppercase; letter-spacing: .5px }
+    .match-col h3 { font-family: var(--disp); font-style: italic; font-weight: 700; font-size: 22px; margin: 2px 0 4px }
+    .match-col p { font-size: 13px; color: var(--mute); line-height: 1.4 }
+    .score { display: flex; flex-direction: column; align-items: center; gap: 10px }
+    .ring { width: 86px; height: 86px; border-radius: 50%; border: 4px solid var(--accent); display: grid; place-items: center; font-family: var(--disp); font-style: italic; font-weight: 900; font-size: 26px }
+    .acts { display: flex; gap: 8px }
+    .circ { width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--ink); background: transparent; cursor: pointer; font-size: 16px; transition: .2s }
+    .circ.yes:hover { background: var(--ink); color: var(--paper) }
+    .circ.no:hover { background: var(--accent); border-color: var(--accent); color: #fff }
+
+    .row { display: flex; gap: 18px; align-items: center; padding: 18px 0; border-bottom: 1px dashed var(--border); cursor: pointer; transition: all .2s }
+    .row:hover { background: rgba(232, 80, 31, .05); padding: 18px 8px; border-radius: 8px }
+    .tag { flex: none; transform: rotate(-6deg); padding: 5px 16px; border-radius: 999px; font-weight: 700; font-size: 12px; background: var(--accent); color: #fff; text-transform: uppercase }
+    .tag.found { background: transparent; color: var(--ink); border: 2px solid var(--ink) }
+    .tag.returned { background: var(--green); border-color: var(--green); color: #fff }
+    .row h3 { font-family: var(--disp); font-style: italic; font-weight: 700; font-size: 22px; line-height: 1.1 }
+    .row p { color: var(--mute); font-size: 13px; margin-top: 4px }
+    .id { margin-left: auto; font-family: var(--disp); font-style: italic; color: var(--mute) }
+
+    .chat-portal-layout { display: grid; grid-template-columns: 320px 1fr; background: #fff; border: 1px solid var(--border); border-radius: 22px; height: clamp(520px, calc(100vh - 240px), 760px); overflow: hidden; box-shadow: 0 10px 30px rgba(16, 24, 32, .06) }
+    .chat-sidebar { border-right: 1px solid var(--border); background: #fafbfc; display: flex; flex-direction: column; height: 100%; overflow: hidden }
+    .chat-sidebar-header { padding: 16px 18px; border-bottom: 1px solid var(--border); background: #fff; display: flex; flex-direction: column; gap: 12px; flex-shrink: 0 }
+    .sidebar-header-top h3 { font-family: var(--disp); font-style: italic; font-weight: 800; font-size: 20px; color: var(--ink); margin: 0 }
+
+    .chat-thread-list { overflow-y: auto; flex: 1 1 0; scrollbar-width: thin }
+    .chat-thread-item { padding: 14px 16px; border-bottom: 1px solid #edf0f2; cursor: pointer; transition: background .2s; display: flex; align-items: center; gap: 12px; border-left: 4px solid transparent }
+    .chat-thread-item:hover { background: #f1f4f7 }
+    .chat-thread-item.active { background: #edf2f7; border-left-color: var(--accent) }
+    .thread-avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--ink); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 15px; flex-shrink: 0 }
+    .thread-details { flex: 1; min-width: 0; overflow: hidden }
+    .thread-details b { font-size: 14px; font-weight: 700; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block }
+    .thread-details span { font-size: 12px; color: var(--mute); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block }
+    .thread-unread-badge { background: var(--accent); color: #fff; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 999px }
+
+    .chat-main { display: flex; flex-direction: column; height: 100%; background: #fff; overflow: hidden }
+    .chat-main-header { padding: 14px 20px; border-bottom: 1px solid var(--border); background: #fff; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-shrink: 0 }
+    .chat-header-left { display: flex; align-items: center; gap: 12px; min-width: 0 }
+    .chat-header-avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--accent); color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 16px; flex-shrink: 0 }
+    .chat-user-head h4 { font-size: 16px; font-weight: 700; color: var(--ink); margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+
+    .chat-body { flex: 1 1 0; min-height: 0; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; background: #f8fafc }
+    .chat-msg-wrapper { display: flex; align-items: flex-end; gap: 8px }
+    .chat-msg-wrapper.mine { justify-content: flex-end }
+    .chat-msg-group { display: flex; flex-direction: column; gap: 2px; max-width: 74% }
+    .chat-msg { padding: 10px 16px 8px; border-radius: 18px; font-size: 14px; line-height: 1.45; word-break: break-word; box-shadow: 0 2px 8px rgba(16, 24, 32, .04) }
+    .chat-msg.mine { background: linear-gradient(135deg, var(--accent) 0%, #d84315 100%); color: #fff; border-bottom-right-radius: 4px }
+    .chat-msg.theirs { background: #fff; border: 1px solid var(--border); color: var(--ink); border-bottom-left-radius: 4px }
+    .chat-msg-meta { display: flex; align-items: center; gap: 5px; margin-top: 3px; font-size: 10px }
+    .chat-msg.mine .chat-time { color: rgba(255, 255, 255, 0.85) }
+    .chat-msg.theirs .chat-time { color: var(--mute) }
+    .msg-edited-badge { font-size: 10px; color: rgba(255, 255, 255, 0.7); font-style: italic }
+    .chat-msg.theirs .msg-edited-badge { color: var(--mute) }
+
+    .msg-menu { position: relative }
+    .msg-menu-btn { background: transparent; border: none; color: var(--mute); cursor: pointer; padding: 4px 8px; font-size: 18px; opacity: 0; transition: opacity .2s; display: flex }
+    .chat-msg-wrapper:hover .msg-menu-btn { opacity: 1 }
+    .msg-menu-dropdown { position: absolute; bottom: 100%; right: 0; background: #fff; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 4px 12px rgba(16, 24, 32, .1); min-width: 140px; display: none; z-index: 50 }
+    .msg-menu-dropdown.show { display: block }
+    .msg-menu-option { padding: 10px 14px; cursor: pointer; font-size: 13px; border-bottom: 1px solid #f0f0f0; transition: background .2s }
+    .msg-menu-option:last-child { border-bottom: none }
+    .msg-menu-option:hover { background: var(--accent-light) }
+    .msg-menu-option.delete:hover { background: #ffebe9; color: #d74212 }
+
+    .edit-mode-input { width: 100%; color: var(--ink); caret-color: var(--accent); background: #fff; border: 1px solid var(--accent); border-radius: 8px; padding: 10px 12px; font-size: 14px }
+    .edit-mode-actions { display: flex; gap: 8px; margin-top: 8px; font-size: 12px }
+    .edit-mode-actions button { padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; transition: .2s }
+    .edit-mode-actions .save-btn { background: var(--ink); color: #fff }
+    .edit-mode-actions .save-btn:hover { background: #2a3844 }
+    .edit-mode-actions .cancel-btn { background: #e2e7ec; color: var(--ink) }
+    .edit-mode-actions .cancel-btn:hover { background: #cbd3da }
+
+    .chat-quick-chips { padding: 10px 18px; background: #f2f5f7; display: flex; align-items: center; gap: 8px; overflow-x: auto; border-top: 1px solid #e2e8f0; flex-shrink: 0 }
+    .chip-btn { background: #fff; border: 1px solid var(--border); border-radius: 999px; padding: 5px 14px; font-size: 12px; font-weight: 500; color: var(--ink); cursor: pointer; white-space: nowrap; transition: background .2s, color .2s; flex-shrink: 0 }
+    .chip-btn:hover { background: var(--ink); color: #fff; transform: translateY(-1px) }
+
+    .chat-input-bar { padding: 12px 18px; border-top: 1px solid var(--border); background: #fff; display: flex; gap: 10px; align-items: center; flex-shrink: 0 }
+    .chat-input-wrapper { flex: 1; position: relative }
+    .chat-input-wrapper input { width: 100%; padding: 11px 18px; border: 1.5px solid var(--border); border-radius: 999px; font-size: 14px; background: #fbfcfd; transition: border-color .2s, background .2s }
+    .chat-input-wrapper input:focus { border-color: var(--accent); background: #fff; outline: none }
+    .chat-send-btn { border: 0; border-radius: 999px; background: var(--accent); color: #fff; font-size: 13px; font-weight: 700; padding: 10px 20px; cursor: pointer; transition: background .2s; flex-shrink: 0 }
+    .chat-send-btn:hover { background: #d84315 }
+    .chat-send-btn:disabled, .chip-btn:disabled, .chat-input-wrapper input:disabled { opacity: .5; cursor: not-allowed }
+
+    .empty { padding: 36px 0; font-family: var(--disp); font-style: italic; font-size: 24px; color: var(--mute) }
+    .empty small { display: block; font-family: 'Instrument Sans'; font-style: normal; font-size: 14px; margin-top: 6px }
+
+    .product-detail { background: var(--paper-card); border: 1px solid var(--border); border-radius: 20px; padding: 24px; margin-bottom: 24px; cursor: pointer; transition: all .2s }
+    .product-detail:hover { border-color: var(--accent); box-shadow: 0 4px 16px rgba(232, 80, 31, .1) }
+    .product-detail h3 { font-family: var(--disp); font-style: italic; font-weight: 700; font-size: 22px; margin-bottom: 12px }
+    .product-info { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px }
+    .product-info-item { padding: 10px; background: #f8f9fa; border-radius: 8px }
+    .product-info-item strong { display: block; font-size: 11px; color: var(--mute); text-transform: uppercase; margin-bottom: 4px }
+    .product-info-item span { font-size: 14px; color: var(--ink); font-weight: 600 }
+    .product-photo { width: 100px; height: 100px; border-radius: 12px; object-fit: cover; border: 2px solid var(--border); margin-bottom: 12px }
+
+    .toast { position: fixed; bottom: 28px; right: 28px; background: var(--ink); color: var(--paper); padding: 14px 28px; border-radius: 999px; font-weight: 600; font-size: 14px; z-index: 500; box-shadow: 0 8px 24px rgba(0, 0, 0, .25) }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(16, 24, 32, .75); backdrop-filter: blur(4px); z-index: 200; display: grid; place-items: center; padding: 20px; overflow-y: auto }
+    .modal-overlay[hidden] { display: none }
+    .modal-dialog { background: #fff; border-radius: 24px; padding: 34px; max-width: 520px; width: 100%; box-shadow: 0 12px 40px rgba(0, 0, 0, .25); max-height: 90vh; overflow-y: auto }
+    .modal-dialog h3 { font-family: var(--disp); font-style: italic; font-weight: 900; font-size: 28px; margin-bottom: 8px }
+    .modal-dialog p { font-size: 14px; color: var(--mute); line-height: 1.5; margin-bottom: 20px }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px }
+
+    .loader { position: fixed; inset: 0; z-index: 100; background: var(--ink); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); transition: clip-path .85s cubic-bezier(.77, 0, .18, 1) }
+    .loader.done { clip-path: polygon(0 0, 0 0, -18% 100%, 0 100%); pointer-events: none }
+    .word { display: flex; font-family: var(--disp); font-style: italic; font-weight: 900; font-size: 44px; color: var(--paper) }
+    .word span { opacity: 0; animation: letter .5s calc(1.3s + var(--i)*.06s) ease-out forwards }
+    .word .a { color: var(--accent) }
+    @keyframes letter { to { opacity: 1 } }
+
+    @media(max-width:960px) {
+      .shell { grid-template-columns: 1fr }
+      .rail { clip-path: polygon(0 0, 100% 0, 100% 95%, 0 100%); padding: 32px 24px 76px }
+      .stage { padding: 28px 18px 56px }
+      .match-grid { grid-template-columns: 1fr }
+      .match-grid .vs { display: none }
+      .form-grid { grid-template-columns: 1fr }
+      .chat-portal-layout { grid-template-columns: 1fr }
+      .product-info { grid-template-columns: 1fr }
+    }
+
+    @media(max-width:768px) {
+      .rail { padding: 24px 16px 60px }
+      .stage { padding: 20px 12px 40px }
+      .logo { font-size: 24px }
+      .tab { font-size: 18px }
+      .section h2 { font-size: 28px }
+      .chat-portal-layout { display: flex; flex-direction: column; height: clamp(480px, calc(100dvh - 180px), 720px) }
+      .chat-portal-layout:not(.mobile-view-chat) .chat-sidebar { display: flex !important; width: 100%; height: 100%; border-right: none }
+      .chat-portal-layout:not(.mobile-view-chat) .chat-main { display: none !important }
+      .chat-portal-layout.mobile-view-chat .chat-sidebar { display: none !important }
+      .chat-portal-layout.mobile-view-chat .chat-main { display: flex !important; width: 100%; height: 100% }
+      .chat-msg { max-width: 86% }
+    }
+
+    @media(max-width:480px) {
+      .rail { padding: 16px 12px 50px }
+      .stage { padding: 16px 10px 32px }
+      .slash { display: none }
+      .section h2 { font-size: 24px }
+      .btn { padding: 12px 24px }
+      .match-card { padding: 12px }
+      .ring { width: 72px; height: 72px; font-size: 22px }
+      .chat-body { padding: 12px }
+      .chat-msg { max-width: 88% }
+    }
+    /* loader logo */
+    .loader svg.mark-lg { width: 110px; height: 110px; flex: none; overflow: visible; fill: none; stroke: var(--paper); stroke-width: 4; stroke-linecap: round }
+    .loader .ring-d { stroke-dasharray: 120; stroke-dashoffset: 120; animation: drawLine .9s .1s ease-out forwards }
+    .loader .handle-d { stroke-dasharray: 22; stroke-dashoffset: 22; animation: drawLine .4s .8s ease-out forwards }
+    .loader .dot-d { fill: var(--accent); stroke: none; opacity: 0; transform-box: fill-box; transform-origin: center; animation: dotPop .5s .9s ease-out forwards }
+    @keyframes drawLine { to { stroke-dashoffset: 0 } }
+    @keyframes dotPop { 0% { opacity: 0; transform: scale(0) } 70% { transform: scale(1.3) } 100% { opacity: 1; transform: scale(1) } }
+    .modal-dialog.center { text-align: center }
+    .modal-dialog.center .modal-actions { justify-content: center }
+    .modal-icon { font-size: 44px; margin-bottom: 8px }
+    .cam-video { width: 100%; max-height: 60vh; border-radius: 14px; background: #000; display: block }
+    .msg-subtabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: #eef1f4; padding: 4px; border-radius: 999px }
+    .msg-subtab { border: 0; background: transparent; border-radius: 999px; padding: 8px 6px; font-size: 13px; font-weight: 700; color: var(--mute); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: .2s }
+    .msg-subtab.active { background: #fff; color: var(--ink); box-shadow: 0 1px 4px rgba(16,24,32,.12) }
+    .msg-subtab .badge-count { font-size: 10px; padding: 1px 7px }
+    .req-group { padding: 12px 14px 4px; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--mute) }
+    .req-card { margin: 8px 12px; padding: 14px; background: #fff; border: 1px solid var(--border); border-radius: 14px }
+    .req-card b { display: block; font-size: 14px }
+    .req-card p { font-size: 12px; color: var(--mute); margin: 4px 0 10px; line-height: 1.4 }
+    .req-actions { display: flex; gap: 8px; flex-wrap: wrap }
+    .req-status { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: #fff3cd; color: #7a5b00 }
+    .req-status.declined { background: #ffebe9; color: #b3300f }
+    .req-status.approved { background: var(--green-light); color: var(--green) }
+    .back-mobile{display:none}
+    @media(max-width:768px){.back-mobile{display:inline-block}}
+    @media(hover:none){.msg-menu-btn{opacity:1}}
+  </style>
+</head>
+
+<body> 
+   <div class="modal-overlay" id="auth-screen" hidden>
+    <div class="modal-dialog">
+      <h3 id="auth-title">Log in</h3>
+      <p id="auth-sub">Welcome back to FindBack.</p>
+      <form id="auth-form" onsubmit="submitAuth(event)">
+        <div class="form-grid">
+          <div class="field full" id="auth-name-wrap" style="display:none"><label for="auth-name">Name</label><input id="auth-name" type="text"></div>
+          <div class="field full"><label for="auth-email">Email</label><input id="auth-email" type="email" required></div>
+          <div class="field full"><label for="auth-pass">Password</label><input id="auth-pass" type="password" required minlength="6"></div>
+        </div>
+        <div class="error-msg" id="auth-error"></div>
+        <div class="modal-actions" style="justify-content:space-between;align-items:center">
+          <button type="button" class="link" id="auth-switch" onclick="toggleAuthMode()">Create an account</button>
+          <button type="submit" class="btn" id="auth-submit">Log in</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="loader" id="loader">
+    <svg class="mark-lg" viewBox="0 0 64 64">
+      <circle class="ring-d" cx="27" cy="27" r="19" />
+      <line class="handle-d" x1="41" y1="41" x2="56" y2="56" />
+      <circle class="dot-d" cx="27" cy="27" r="5" />
+    </svg>
+    <div class="word" id="word"></div>
+  </div>
+
+  <div class="shell">
+    <aside class="rail">
+      <a class="logo" href="#">
+        <svg viewBox="0 0 64 64">
+          <circle cx="27" cy="27" r="19" />
+          <line x1="41" y1="41" x2="56" y2="56" />
+          <circle class="dot" cx="27" cy="27" r="5" />
+        </svg>
+        <span>Find<i>Back</i></span>
+      </a>
+
+      <div class="user-rail-card">
+        <div class="user-avatar" id="rail-avatar">AR</div>
+        <div class="user-details">
+          <strong id="rail-name">Alex Rivera</strong>
+          <span id="rail-email">alex@findback.io</span>
+        </div>
+        <div class="user-actions">
+          <button class="btn-ghost-sm" onclick="logout()">Log out</button>
+        </div>
+      </div>
+
+      <div class="hero">
+        <h1>Lost it? We'll help you find it back.</h1>
+        <p>Campus-wide lost &amp; found with instant item matching and secure in-app chat.</p>
+      </div>
+
+      <div class="stats">
+        <div class="stat" onclick="filterAndShowReports('lost')" title="View all lost reports">
+          <b id="stat-lost">0</b><span>Lost reports</span>
+        </div>
+        <div class="stat" onclick="filterAndShowReports('found')" title="View all found reports">
+          <b id="stat-found">0</b><span>Found reports</span>
+        </div>
+        <div class="stat" onclick="filterAndShowMatches()" title="View matches">
+          <b id="stat-matched">0</b><span>Matches</span>
+        </div>
+        <div class="stat" onclick="filterAndShowReports('returned')" title="View returned items">
+          <b id="stat-complete">0</b><span>Returned</span>
+        </div>
+      </div>
+
+      <div class="feed">
+        <div class="feed-header">
+          <h3>Live activity</h3>
+          <span class="live-indicator" title="Real-time updates"><span class="live-pulse"></span> Live</span>
+        </div>
+        <div id="activity-feed"></div>
+      </div>
+    </aside>
+
+    <main class="stage">
+      <div class="persona-bar">
+        <div>Signed in as <b id="bar-user-name">Alex Rivera</b></div>
+       <button class="persona-toggle-btn" onclick="logout()">Log out</button>
+      </div>
+
+      <nav class="tabs">
+        <button class="tab active" onclick="switchTab('report',this)">Report</button><span class="slash">/</span>
+        <button class="tab" onclick="switchTab('matches',this)">Matches</button><span class="slash">/</span>
+        <button class="tab" onclick="switchTab('chat-portal',this)">Messages <span class="badge-count hidden" id="chat-badge"></span></button><span class="slash">/</span>
+        <button class="tab" onclick="switchTab('search',this)">Search</button><span id="ink"></span>
+      </nav>
+
+      <section id="report" class="section active">
+        <h2>Report an item</h2>
+        <div style="margin-bottom:24px">
+          <div class="types">
+            <input type="radio" id="select-lost" name="report-type" value="lost" onchange="switchReportForm('lost')" checked>
+            <label for="select-lost">I lost it</label>
+            <input type="radio" id="select-found" name="report-type" value="found" onchange="switchReportForm('found')">
+            <label for="select-found">I found it</label>
+          </div>
+        </div>
+
+        <form id="lost-form" onsubmit="submitReport(event, 'lost')">
+          <div class="form-grid">
+            <div class="field"><label for="l-name">Item name *</label><input id="l-name" type="text" required placeholder="e.g. Black Wildcraft Backpack"></div>
+            <div class="field"><label for="l-cat">Category *</label><input id="l-cat" type="text" required placeholder="e.g. Bag, Phone, Wallet"></div>
+            <div class="field"><label for="l-color">Color</label><input id="l-color" type="text" placeholder="e.g. Matte Black"></div>
+            <div class="field"><label for="l-brand">Brand / Model</label><input id="l-brand" type="text" placeholder="e.g. Apple, Wildcraft"></div>
+
+            <div class="field full">
+              <label for="l-loc">Location on Campus *</label>
+              <div class="location-wrapper">
+                <input id="l-loc" type="text" required placeholder="Select location..." class="location-input" oninput="handleLocationInput('lost')" onfocus="openLocationDropdown('lost')">
+                <div class="location-dropdown" id="lost-location-dropdown"></div>
+              </div>
+              <div class="stone-bench-note" id="lost-stone-bench-note">⚠️ Please specify the nearby area for Stone Bench</div>
+            </div>
+
+            <div class="field"><label for="l-date">Date *</label><input id="l-date" type="date" required></div>
+
+            <div class="photo-section full">
+              <label>Photo of the item * <span style="color:#d74212;font-weight:700">(Required)</span></label>
+              <div class="photo-actions">
+                <button type="button" class="pill" onclick="document.getElementById('file-input-lost').click()">📁 Upload Photo</button>
+                <button type="button" class="pill" onclick="askCamera('lost')">📷 Take Photo</button>
+                <input id="file-input-lost" type="file" accept="image/*" hidden onchange="onFile(this, 'lost')">
+                <div class="photo-preview" id="photo-prev-lost"></div>
+              </div>
+            </div>
+
+            <button type="submit" class="btn submit">Submit Lost Report</button>
+          </div>
+        </form>
+
+        <form id="found-form" onsubmit="submitReport(event, 'found')" hidden>
+          <div class="form-grid">
+            <div class="field"><label for="f-name">Item name *</label><input id="f-name" type="text" required placeholder="e.g. Black Wildcraft Backpack"></div>
+            <div class="field"><label for="f-cat">Category *</label><input id="f-cat" type="text" required placeholder="e.g. Bag, Phone, Wallet"></div>
+            <div class="field"><label for="f-color">Color</label><input id="f-color" type="text" placeholder="e.g. Matte Black"></div>
+            <div class="field"><label for="f-brand">Brand / Model</label><input id="f-brand" type="text" placeholder="e.g. Apple, Wildcraft"></div>
+
+            <div class="field full">
+              <label for="f-loc">Location on Campus *</label>
+              <div class="location-wrapper">
+                <input id="f-loc" type="text" required placeholder="Select location..." class="location-input" oninput="handleLocationInput('found')" onfocus="openLocationDropdown('found')">
+                <div class="location-dropdown" id="found-location-dropdown"></div>
+              </div>
+              <div class="stone-bench-note" id="found-stone-bench-note">⚠️ Please specify the nearby area for Stone Bench</div>
+            </div>
+
+            <div class="field"><label for="f-date">Date *</label><input id="f-date" type="date" required></div>
+
+            <div class="photo-section full">
+              <label>Photo of the item * <span style="color:#d74212;font-weight:700">(Required)</span></label>
+              <div class="photo-actions">
+                <button type="button" class="pill" onclick="document.getElementById('file-input-found').click()">📁 Upload Photo</button>
+                <button type="button" class="pill" onclick="askCamera('found')">📷 Take Photo</button>
+                <input id="file-input-found" type="file" accept="image/*" hidden onchange="onFile(this, 'found')">
+                <div class="photo-preview" id="photo-prev-found"></div>
+              </div>
+            </div>
+
+            <button type="submit" class="btn submit">Submit Found Report</button>
+          </div>
+        </form>
+      </section>
+
+      <section id="matches" class="section">
+        <h2>Candidate Matches</h2>
+        <p style="color:var(--mute);margin-bottom:20px;font-size:15px">Matches detected by comparing category, brand, color, and location.</p>
+        <div id="matches-container"></div>
+      </section>
+
+      <section id="chat-portal" class="section">
+        <h2>Secure In-App Chat</h2>
+        <p style="color:var(--mute);margin-bottom:20px;font-size:15px">Coordinate safe handovers with verified members.</p>
+        <div class="chat-portal-layout" id="chat-portal-box">
+          <aside class="chat-sidebar" id="chat-sidebar-pane">
+            <div class="chat-sidebar-header">
+              <div class="sidebar-header-top">
+                <h3>Messages</h3>
+              </div>
+              <div class="msg-subtabs">
+                <button class="msg-subtab active" id="subtab-chats" onclick="setMsgView('chats')">Chats</button>
+                <button class="msg-subtab" id="subtab-requests" onclick="setMsgView('requests')">Requests <span class="badge-count hidden" id="req-badge"></span></button>
+              </div>
+            </div>
+            <div class="chat-thread-list" id="chat-thread-list"></div>
+          </aside>
+
+          <div class="chat-main" id="chat-main-view">
+            <div class="chat-main-header">
+              <div class="chat-header-left">
+                <button class="btn btn-outline btn-sm back-mobile" onclick="$('chat-portal-box').classList.remove('mobile-view-chat')">←</button>
+                <div class="chat-header-avatar" id="chat-header-avatar">SC</div>
+                <div class="chat-user-head">
+                  <h4 id="chat-with-name">Sam Chen</h4>
+                </div>
+              </div>
+              <div class="chat-header-actions">
+                <button class="btn btn-sm" style="background:var(--green);color:#fff" onclick="markChatHandoverComplete()">✓ Returned</button>
+              </div>
+            </div>
+            <div class="chat-body" id="chat-msgs-body"></div>
+            <div class="chat-quick-chips">
+              <button class="chip-btn" onclick="sendQuickReply('Can we meet soon?')">📍 Meet soon?</button>
+              <button class="chip-btn" onclick="sendQuickReply('I am here now!')">🚶 I'm here!</button>
+              <button class="chip-btn" onclick="sendQuickReply('Thank you!')">🙏 Thank you!</button>
+            </div>
+            <form class="chat-input-bar" id="chat-input-form" onsubmit="handleSendChat(event)">
+              <div class="chat-input-wrapper">
+                <input type="text" id="chat-input" placeholder="Type a message..." required>
+              </div>
+              <button type="submit" class="chat-send-btn">Send</button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <section id="search" class="section">
+        <h2>Search &amp; Browse Lost Items</h2>
+        <div class="field" style="margin-bottom:16px">
+          <label for="search-input">Search by item name, location, brand, or color</label>
+          <input type="text" id="search-input" placeholder="Type search query..." oninput="performSearch()">
+        </div>
+        <div id="search-results"></div>
+      </section>
+    <section id="browse" class="section"><button class="btn btn-outline btn-sm" onclick="goBack()">← Back</button><div id="browse-content" style="margin-top:16px"></div></section>
+    </main>
+  </div>
+
+  <script>
+    const LOCATIONS = ['LIBRARY', 'CANTEEN', 'LABORATORY BLOCK', 'NIGHT CANTEEN', 'GROUND', 'LAUNDRY SECTION', 'GIRLS HOSTEL', 'BOYS HOSTEL (NEAR NIGHT CANTEEN)', 'PRANAVA BOYS HOSTEL', 'BOYS HOSTEL (BACK OF ACADEMIC BLOCK)', 'BADMINTON COURT', 'BOYS GYM (NEAR HOSTEL)', 'GIRLS GYM', 'BOYS GYM-1', 'ADMIN OFFICE', 'FACULTY BLOCK', 'TEMPLE', 'ATM AREA', 'STONE BENCH', 'ACADEMIC BLOCK'];
+
+    const DEMO_USERS = [
+      { id: 'u1', name: 'Alex Rivera', email: 'alex@findback.io' },
+      { id: 'u2', name: 'Sam Chen', email: 'sam@findback.io' }
+    ];
+
+    const INITIAL_REPORTS = [
+      { id: 1, userId: 'u1', type: 'lost', name: 'Black Backpack', cat: 'Bag', color: 'Black', brand: 'Wildcraft', loc: 'GROUND', date: '2026-09-24', photo: '', createdAt: Date.now() - 5 * 86400000, done: false },
+      { id: 2, userId: 'u2', type: 'found', name: 'Backpack', cat: 'Bag', color: 'Black', brand: 'Wildcraft', loc: 'GROUND', date: '2026-09-25', photo: 'data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20100%20100%22%3E%3Crect%20fill=%22%23333%22%20width=%22100%22%20height=%22100%22/%3E%3C/svg%3E', createdAt: Date.now() - 4 * 86400000, done: false }
+    ];
+
+    let currentUser = DEMO_USERS[0];
+    let reports = [];
+    let meetRequests = [];
+    let chatThreads = {};
+    let activeChatKey = '1-2';
+    let currentPhoto = '';
+    let currentPhotoType = '';
+    let token = sessionStorage.getItem('findback_token') || '';
+let authMode = 'login';
+
+async function api(path, options = {}) {
+  const headers = { ...(options.headers || {}) };
+  if (token) headers.Authorization = 'Bearer ' + token;
+  const res = await fetch('/api' + path, { ...options, headers });
+  const data = await res.json().catch(() => ({}));
+  if (res.status === 401 && token) logout();
+  if (!res.ok) throw new Error(data.error || 'Something went wrong');
+  return data;
+}
+
+// Converts a server report into the shape this page already uses
+const mapReport = r => ({
+  id: r.id, userId: r.user.id, type: r.type, name: r.name, cat: r.category,
+  color: r.color || '', brand: r.brand || '', loc: r.location, date: r.date,
+  photo: r.photo_url, createdAt: r.created_at, done: r.done
+});
+
+async function loadReports() {
+  const data = await api('/reports');
+  reports = data.reports.map(mapReport);
+}
+
+const userNames = {};
+const fmtTime = ts => new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+const jsonOpts = (method, body) => ({ method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) });
+
+// Loads requests + chat messages from the server into the page's existing variables
+async function loadRequests() {
+  const data = await api('/requests');
+  meetRequests = data.requests;
+  chatThreads = {};
+  meetRequests.forEach(t => {
+    userNames[t.lostOwner.id] = t.lostOwner.name;
+    userNames[t.foundOwner.id] = t.foundOwner.name;
+    if (t.status === 'cancelled' || t.status === 'declined') return;
+    chatThreads[`${t.lostId}-${t.foundId}`] = t.messages.map(m => ({ ...m, time: fmtTime(m.createdAt) }));
+  });
+}
+
+// Refresh every few seconds so the other account's requests and messages show up
+let liveTimer = null;
+let lastLiveSig = '';
+async function refreshLive() {
+  if (!token || !currentUser || editingId !== null) return;
+  try {
+    await Promise.all([loadReports(), loadRequests()]);
+    const sig = JSON.stringify([reports.map(r => [r.id, r.done]), meetRequests]);
+    if (sig === lastLiveSig) return;
+    lastLiveSig = sig;
+    updateStats(); updateActivityFeed(); updateMessageBadge();
+    if ($('chat-portal').classList.contains('active')) renderChatPortal();
+    if ($('matches').classList.contains('active')) renderMatches();
+  } catch (e) { /* ignore, try again next tick */ }
+}
+function startLive() { stopLive(); liveTimer = setInterval(refreshLive, 4000); }
+function stopLive() { clearInterval(liveTimer); liveTimer = null; lastLiveSig = ''; }
+
+function toggleAuthMode() {
+  authMode = authMode === 'login' ? 'register' : 'login';
+  const reg = authMode === 'register';
+  $('auth-title').textContent = reg ? 'Create account' : 'Log in';
+  $('auth-sub').textContent = reg ? 'Join FindBack to report and recover items.' : 'Welcome back to FindBack.';
+  $('auth-name-wrap').style.display = reg ? 'flex' : 'none';
+  $('auth-name').required = reg;
+  $('auth-submit').textContent = reg ? 'Sign up' : 'Log in';
+  $('auth-switch').textContent = reg ? 'I already have an account' : 'Create an account';
+  $('auth-error').classList.remove('show');
+}
+
+async function submitAuth(e) {
+  e.preventDefault();
+  const err = $('auth-error');
+  err.classList.remove('show');
+  const body = { email: $('auth-email').value, password: $('auth-pass').value };
+  if (authMode === 'register') body.name = $('auth-name').value;
+  try {
+    const data = await api('/auth/' + authMode, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    token = data.token;
+    sessionStorage.setItem('findback_token', token);
+    currentUser = data.user;
+    $('auth-form').reset();
+    $('auth-screen').hidden = true;
+    await Promise.all([loadReports(), loadRequests()]);
+    startLive();
+    syncUserUI();
+    performSearch();
+  } catch (ex) {
+    err.textContent = ex.message;
+    err.classList.add('show');
+  }
+}
+
+function logout() {
+  token = '';
+  sessionStorage.removeItem('findback_token');
+  stopLive();
+  currentUser = null;
+  reports = [];
+  meetRequests = [];
+  chatThreads = {};
+  $('auth-screen').hidden = false;
+}
+
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    let editingId = null;
+    let editDraft = '';
+    let msgView = 'chats';
+    let lastTab = 'report';
+    const dismissed = new Set();
+    function saveRequests() { /* now stored on the server */ }
+    function getRequest(l, f) { return meetRequests.find(t => t.lostId === l && t.foundId === f && t.status !== 'cancelled') }
+    function hasRequest(l, f) { return !!getRequest(l, f) }
+    function finderOf(t) { return t.finderId }
+    function incomingRequests() { return meetRequests.filter(t => t.status === 'pending' && finderOf(t) === currentUser.id) }
+    function sentRequests() { return meetRequests.filter(t => t.requesterId === currentUser.id && t.status !== 'cancelled') }
+    function setMsgView(v) { msgView = v; renderChatPortal() }
+    async function respondRequest(id, accept) {
+      try {
+        await api(`/requests/${id}/respond`, jsonOpts('POST', { accept }));
+        await loadRequests();
+        const t = meetRequests.find(x => x.id === id);
+        if (accept && t) { activeChatKey = `${t.lostId}-${t.foundId}`; msgView = 'chats' }
+        showToast(accept ? 'Request accepted - chat opened' : 'Request declined');
+        renderChatPortal(); updateMessageBadge();
+      } catch (e) { showToast(e.message) }
+    }
+    async function cancelRequest(id) {
+      try {
+        await api(`/requests/${id}/cancel`, jsonOpts('POST'));
+        await loadRequests();
+        renderChatPortal(); renderMatches(); updateMessageBadge();
+        showToast('Request cancelled');
+      } catch (e) { showToast(e.message) }
+    }
+    function dismissMatch(l, f) { dismissed.add(l + '-' + f); renderMatches(); updateStats() }
+    function threadUsers(t) { return [t.lostOwner.id, t.foundOwner.id] }
+
+    function saveReports() { /* now stored on the server */ }
+    function saveChats() { /* now stored on the server */ }
+
+    function syncUserUI() {
+      const initials = currentUser.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+      $('rail-avatar').textContent = initials;
+      $('rail-name').textContent = currentUser.name;
+      $('rail-email').textContent = currentUser.email;
+      $('bar-user-name').textContent = currentUser.name;
+      updateStats();
+      updateActivityFeed();
+      updateMessageBadge();
+      renderMatches();
+      renderChatPortal();
+    }
+
+    function toggleDemoUser() {
+      currentUser = currentUser.id === 'u1' ? DEMO_USERS[1] : DEMO_USERS[0];
+      syncUserUI();
+      showToast(`Switched to ${currentUser.name}`);
+    }
+
+    function switchReportForm(type) {
+      setPhoto();
+      const lostForm = $('lost-form');
+      const foundForm = $('found-form');
+      
+      if (type === 'lost') {
+        lostForm.hidden = false;
+        foundForm.hidden = true;
+      } else {
+        lostForm.hidden = true;
+        foundForm.hidden = false;
+      }
+    }
+
+    function handleLocationInput(type) {
+      const input = $(type === 'lost' ? 'l-loc' : 'f-loc').value.toUpperCase();
+      const filtered = LOCATIONS.filter(loc => loc.includes(input) || input === '');
+      renderLocationDropdown(type, filtered);
+    }
+
+    function openLocationDropdown(type) {
+      renderLocationDropdown(type, LOCATIONS);
+    }
+
+    function renderLocationDropdown(type, locations) {
+      const dropdown = $(type === 'lost' ? 'lost-location-dropdown' : 'found-location-dropdown');
+      if (!locations.length) {
+        dropdown.innerHTML = '<div class="location-option" style="color:var(--mute)">No locations found</div>';
+        dropdown.classList.add('active');
+        return;
+      }
+      dropdown.innerHTML = locations.map(loc => `<div class="location-option" onclick="selectLocation('${type}','${loc}')">${loc}</div>`).join('');
+      dropdown.classList.add('active');
+    }
+
+    function selectLocation(type, loc) {
+      const input = $(type === 'lost' ? 'l-loc' : 'f-loc');
+      const note = $(type === 'lost' ? 'lost-stone-bench-note' : 'found-stone-bench-note');
+      const dropdown = $(type === 'lost' ? 'lost-location-dropdown' : 'found-location-dropdown');
+      
+      input.value = loc;
+      dropdown.classList.remove('active');
+      
+      if (loc === 'STONE BENCH') {
+        note.classList.add('show');
+      } else {
+        note.classList.remove('show');
+      }
+    }
+
+    function showAlert(icon, title, msg, okText = 'OKAY') {
+      closeAlert();
+      document.body.insertAdjacentHTML('beforeend', `
+        <div class="modal-overlay" id="alert-modal" role="alertdialog" aria-modal="true">
+          <div class="modal-dialog center">
+            <div class="modal-icon">${icon}</div>
+            <h3>${esc(title)}</h3>
+            <p>${esc(msg)}</p>
+            <div class="modal-actions"><button class="btn" id="alert-ok" onclick="closeAlert()">${esc(okText)}</button></div>
+          </div>
+        </div>`);
+      $('alert-ok').focus();
+    }
+    function closeAlert() { $('alert-modal')?.remove() }
+
+    function processImage(src, type) {
+      const img = new Image();
+      img.onload = () => {
+        const k = Math.min(1, 800 / Math.max(img.width, img.height));
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        currentPhoto = c.toDataURL('image/jpeg', 0.75);
+        currentPhotoType = type;
+        $('photo-prev-' + type).innerHTML = `<img class="thumb" src="${currentPhoto}" alt="Photo"><button type="button" class="link" onclick="setPhoto()">Remove</button>`;
+      };
+      img.onerror = () => showAlert('⚠️', 'Invalid image', 'That file could not be read. Please choose another photo.');
+      img.src = src;
+    }
+
+    function onFile(input, type) {
+      const file = input.files[0];
+      input.value = '';
+      if (!file) return;
+      if (!file.type.startsWith('image/')) { showAlert('⚠️', 'Not an image', 'Please choose an image file (JPG, PNG, etc).'); return }
+      const reader = new FileReader();
+      reader.onload = e => processImage(e.target.result, type);
+      reader.readAsDataURL(file);
+    }
+
+    /* ---- camera ---- */
+    let camStream = null;
+
+    function askCamera(type) {
+      closeAlert();
+      document.body.insertAdjacentHTML('beforeend', `
+        <div class="modal-overlay" id="alert-modal" role="dialog" aria-modal="true">
+          <div class="modal-dialog center">
+            <div class="modal-icon">📷</div>
+            <h3>Allow camera access?</h3>
+            <p>FindBack needs your camera to take a photo of the item. Your browser will ask for permission next.</p>
+            <div class="modal-actions">
+              <button class="btn btn-outline" onclick="closeAlert()">Don't allow</button>
+              <button class="btn" onclick="startCamera('${type}')">Allow</button>
+            </div>
+          </div>
+        </div>`);
+    }
+
+    async function startCamera(type) {
+      closeAlert();
+      if (!navigator.mediaDevices?.getUserMedia) {
+        // Fallback: native camera / file picker (mobile opens the camera directly)
+        const inp = document.createElement('input');
+        inp.type = 'file'; inp.accept = 'image/*'; inp.setAttribute('capture', 'environment');
+        inp.onchange = () => onFile(inp, type);
+        inp.click();
+        return;
+      }
+      try {
+        camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
+      } catch (err) {
+        const msgs = {
+          NotAllowedError: 'Camera permission was blocked. Allow it in your browser settings, or use Upload Photo instead.',
+          NotFoundError: 'No camera was found on this device. Please use Upload Photo instead.',
+          NotReadableError: 'The camera is being used by another app. Close it and try again.'
+        };
+        showAlert('🚫', 'Camera unavailable', msgs[err.name] || 'Could not open the camera. Please use Upload Photo instead.');
+        return;
+      }
+      document.body.insertAdjacentHTML('beforeend', `
+        <div class="modal-overlay" id="camera-modal" role="dialog" aria-modal="true">
+          <div class="modal-dialog">
+            <h3>Take a photo</h3>
+            <video id="cam-video" class="cam-video" autoplay playsinline muted></video>
+            <div class="modal-actions">
+              <button class="btn btn-outline" onclick="closeCamera()">Cancel</button>
+              <button class="btn" onclick="capturePhoto('${type}')">📸 Capture</button>
+            </div>
+          </div>
+        </div>`);
+      $('cam-video').srcObject = camStream;
+    }
+
+    function capturePhoto(type) {
+      const v = $('cam-video');
+      if (!v || !v.videoWidth) { showToast('Camera is still starting...'); return }
+      const c = document.createElement('canvas');
+      c.width = v.videoWidth; c.height = v.videoHeight;
+      c.getContext('2d').drawImage(v, 0, 0);
+      processImage(c.toDataURL('image/jpeg', 0.9), type);
+      closeCamera();
+    }
+
+    function closeCamera() {
+      if (camStream) { camStream.getTracks().forEach(t => t.stop()); camStream = null }
+      $('camera-modal')?.remove();
+    }
+
+    function setPhoto() {
+      currentPhoto = '';
+      $('photo-prev-lost').innerHTML = '';
+      $('photo-prev-found').innerHTML = '';
+    }
+
+   async function submitReport(e, type) {
+  e.preventDefault();
+  if (!currentPhoto) {
+    showAlert('📷', 'Upload the photo', 'A photo of the item is required. Please upload a photo or take one with your camera.');
+    return;
+  }
+  const p = type === 'lost' ? 'l' : 'f';
+  const val = k => $(`${p}-${k}`).value.trim();
+  const loc = val('loc').toUpperCase();
+  if (!LOCATIONS.includes(loc)) { showToast('Please pick a location from the list'); return }
+
+  const fd = new FormData();
+  fd.append('type', type);
+  fd.append('name', val('name'));
+  fd.append('category', val('cat'));
+  fd.append('color', val('color'));
+  fd.append('brand', val('brand'));
+  fd.append('location', loc);
+  fd.append('date', val('date'));
+  const blob = await (await fetch(currentPhoto)).blob();
+  fd.append('photo', blob, 'photo.jpg');
+
+  try {
+    const data = await api('/reports', { method: 'POST', body: fd });
+    reports.unshift(mapReport(data.report));
+    showToast(`Report #${data.report.id} saved!`);
+  } catch (ex) {
+    showToast(ex.message);
+    return;
+  }
+
+  (type === 'lost' ? $('lost-form') : $('found-form')).reset();
+  $('l-date').value = $('f-date').value = $('l-date').max;
+  setPhoto();
+  $(type === 'lost' ? 'lost-stone-bench-note' : 'found-stone-bench-note').classList.remove('show');
+  updateStats();
+  updateActivityFeed();
+  performSearch();
+  renderMatches();
+  setTimeout(() => switchTab('search', document.querySelectorAll('.tab')[3]), 500);
+}
+
+    function filterAndShowMatches() {
+      switchTab('matches', document.querySelectorAll('.tab')[1]);
+    }
+
+    const rowHtml = r => `
+      <div class="row" onclick="showProductDetail(${r.id})">
+        ${r.photo ? `<img class="thumb" src="${r.photo}" alt="Photo">` : ''}
+        <span class="tag ${r.done ? 'returned' : r.type}">${r.done ? 'returned' : r.type}</span>
+        <div><h3>${esc(r.name)}</h3><p>${esc(r.cat)} · ${esc(r.color || '-')} · ${esc(r.loc)} · ${esc(r.date)}</p></div>
+        <span class="id">#${r.id}</span>
+      </div>`;
+
+    function showBrowse(html) { $('browse-content').innerHTML = html; switchTab('browse', null) }
+
+    function showFilteredResults(items) {
+      showBrowse(items.length ? items.map(rowHtml).join('') : '<div class="empty">No items found</div>');
+    }
+
+    function showProductDetail(reportId) {
+      const r = reports.find(x => x.id === reportId);
+      if (!r) return;
+      showBrowse(`
+        <h2>${esc(r.name)}</h2>
+        ${r.photo ? `<img class="product-photo" src="${r.photo}" alt="${esc(r.name)}">` : ''}
+        <div class="product-info">
+          <div class="product-info-item"><strong>Type</strong><span class="tag ${r.done ? 'returned' : r.type}" style="transform:none;margin-top:4px">${r.done ? 'returned' : r.type}</span></div>
+          <div class="product-info-item"><strong>Category</strong><span>${esc(r.cat)}</span></div>
+          <div class="product-info-item"><strong>Color</strong><span>${esc(r.color || '-')}</span></div>
+          <div class="product-info-item"><strong>Brand</strong><span>${esc(r.brand || '-')}</span></div>
+          <div class="product-info-item"><strong>Location</strong><span>${esc(r.loc)}</span></div>
+          <div class="product-info-item"><strong>Date</strong><span>${esc(r.date)}</span></div>
+        </div>`);
+    }
+
+    function updateActivityFeed() {
+      const recent = [...reports].sort((a, b) => b.createdAt - a.createdAt).slice(0, 4);
+      $('activity-feed').innerHTML = recent.length ? recent.map(r => {
+        const m = Math.round((Date.now() - r.createdAt) / 60000);
+        const t = m < 1 ? 'Just now' : m < 60 ? m + 'm ago' : m < 1440 ? Math.round(m / 60) + 'h ago' : Math.floor(m / 1440) + 'd ago';
+        return `<div class="feed-row" onclick="showProductDetail(${r.id})"><span class="dot ${r.type}"></span><span class="n">${esc(r.name)} · ${esc(r.loc)}</span><small>${t}</small></div>`;
+      }).join('') : '<div class="feed-row">No activity yet</div>';
+    }
+
+    function tabBtn(id) { return [...document.querySelectorAll('.tab')].find(b => (b.getAttribute('onclick') || '').includes(`'${id}'`)) }
+    function goBack() { switchTab(lastTab, tabBtn(lastTab)) }
+
+    function switchTab(id, btn) {
+      const cur = document.querySelector('.section.active');
+      if (cur.id === id) return;
+      if (id === 'browse') lastTab = cur.id;
+      document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      placeInk();
+      cur.classList.add('leaving');
+      setTimeout(() => {
+        cur.classList.remove('active', 'leaving');
+        $(id).classList.add('active');
+        if (id === 'search') performSearch();
+        if (id === 'matches') renderMatches();
+        if (id === 'chat-portal') renderChatPortal();
+      }, 200);
+    }
+
+    function placeInk() {
+      const t = document.querySelector('.tab.active');
+      const k = $('ink');
+      if (!k) return;
+      if (!t) { k.style.width = '0'; return }
+      k.style.left = t.offsetLeft + 'px';
+      k.style.width = t.offsetWidth + 'px';
+    }
+
+    function calculateMatch(l, f) {
+      let s = 0;
+      const eq = (a, b) => Boolean(a && b && a.trim().toLowerCase() === b.trim().toLowerCase());
+      const sub = (a, b) => Boolean(a && b && (a.toLowerCase().includes(b.toLowerCase()) || b.toLowerCase().includes(a.toLowerCase())));
+
+      if (eq(l.cat, f.cat)) s += 30;
+      else if (sub(l.cat, f.cat)) s += 15;
+      if (eq(l.name, f.name)) s += 20;
+      else if (sub(l.name, f.name)) s += 10;
+      if (eq(l.color, f.color)) s += 20;
+      if (eq(l.brand, f.brand)) s += 15;
+      if (eq(l.loc, f.loc)) s += 15;
+
+      return Math.min(s, 100);
+    }
+
+    function findMatches(l) {
+      return reports.filter(r => r.type === 'found' && !r.done && r.userId !== l.userId)
+        .map(f => ({ item: f, score: calculateMatch(l, f) }))
+        .filter(m => m.score >= 40 && !dismissed.has(l.id + '-' + m.item.id))
+        .sort((a, b) => b.score - a.score);
+    }
+
+    function renderMatches() {
+      const items = reports.filter(r => r.type === 'lost' && !r.done && r.userId === currentUser.id);
+      const c = $('matches-container');
+      if (!items.length) {
+        c.innerHTML = '<div class="empty">No open lost reports<small>Submit an item to see matches</small></div>';
+        return;
+      }
+
+      let html = '';
+      items.forEach(l => {
+        const matches = findMatches(l);
+        matches.forEach(m => {
+          const f = m.item;
+          html += `
+            <div class="match-card">
+              <div class="match-grid">
+                <div class="match-col">
+                  <small>Lost #${l.id}</small>
+                  <h3>${esc(l.name)}</h3>
+                  <p>${esc(l.cat)} · ${esc(l.color || '-')} · ${esc(l.loc)}</p>
+                </div>
+                <div class="vs">/</div>
+                <div class="match-col">
+                  <small>Found #${f.id}</small>
+                  <h3>${esc(f.name)}</h3>
+                  <p>${esc(f.cat)} · ${esc(f.color || '-')} · ${esc(f.loc)}</p>
+                </div>
+                <div class="score">
+                  <div class="ring">${m.score}%</div>
+                  <div class="acts">
+                    ${hasRequest(l.id, f.id) ? `<small>${esc(({ pending: 'Pending', approved: 'Accepted', declined: 'Declined', completed: 'Returned' })[getRequest(l.id, f.id).status] || 'Requested')}</small>` : `<button class="circ yes" onclick="openRequestModal(${l.id},${f.id})">✓</button>`}
+                    <button class="circ no" onclick="dismissMatch(${l.id},${f.id})">✕</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+      });
+
+      c.innerHTML = html || '<div class="empty">No matches yet</div>';
+    }
+
+    function openRequestModal(lostId, foundId) {
+      const lost = reports.find(r => r.id === lostId);
+      if (!lost) return;
+
+      const modal = `
+        <div class="modal-overlay" id="request-modal">
+          <div class="modal-dialog">
+            <h3>Request Match</h3>
+            <p>Confirm you want to request this match. The finder will see your request in Messages → Requests. A private chat opens once they accept.</p>
+            <div class="modal-actions">
+              <button class="btn btn-outline" onclick="closeRequestModal()">Cancel</button>
+              <button class="btn" onclick="confirmRequest(${lostId},${foundId})">Send Request</button>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.insertAdjacentHTML('beforeend', modal);
+    }
+
+    async function confirmRequest(lostId, foundId) {
+      if (hasRequest(lostId, foundId)) { closeRequestModal(); return }
+      try {
+        await api('/requests', jsonOpts('POST', { lostId, foundId }));
+        await loadRequests();
+        closeRequestModal();
+        showToast('Request sent! Waiting for the finder to accept.');
+        renderMatches(); updateMessageBadge();
+      } catch (e) { closeRequestModal(); showToast(e.message) }
+    }
+
+    function closeRequestModal() {
+      const modal = $('request-modal');
+      if (modal) modal.remove();
+    }
+
+    function markActiveRead() {
+      if (!$('chat-portal').classList.contains('active')) return;
+      const t = meetRequests.find(t => `${t.lostId}-${t.foundId}` === activeChatKey && t.status === 'approved');
+      const msgs = chatThreads[activeChatKey] || [];
+      if (!t || !msgs.some(m => m.senderId !== currentUser.id && !m.read)) return;
+      msgs.forEach(m => { if (m.senderId !== currentUser.id) m.read = true });
+      api(`/requests/${t.id}/read`, jsonOpts('POST')).catch(() => { });
+      updateMessageBadge();
+    }
+
+    function renderChatPortal() { renderChatPortalInner(); updateComposer() }
+    function renderChatPortalInner() {
+      const threads = meetRequests.filter(t => t.status === 'approved' && threadUsers(t).includes(currentUser.id));
+      const incoming = incomingRequests();
+      const list = $('chat-thread-list');
+
+      $('subtab-chats').classList.toggle('active', msgView === 'chats');
+      $('subtab-requests').classList.toggle('active', msgView === 'requests');
+      const rb = $('req-badge');
+      rb.textContent = incoming.length;
+      rb.classList.toggle('hidden', !incoming.length);
+
+      if (threads.length && !threads.some(t => `${t.lostId}-${t.foundId}` === activeChatKey)) activeChatKey = `${threads[0].lostId}-${threads[0].foundId}`;
+      if (!threads.length) {
+        $('chat-msgs-body').innerHTML = '<div class="empty" style="padding:20px">No chat selected<small>Accepted requests appear here</small></div>';
+        $('chat-with-name').textContent = 'No chat selected';
+        $('chat-header-avatar').textContent = '?';
+      } else {
+        markActiveRead();
+      }
+
+      if (msgView === 'requests') {
+        list.innerHTML = renderRequestsPane(incoming);
+        if (threads.length) renderChatMessages();
+        return;
+      }
+
+      if (!threads.length) {
+        list.innerHTML = '<div style="padding:18px;color:var(--mute);font-size:13px">No active chats</div>';
+        return;
+      }
+
+      list.innerHTML = threads.map(t => {
+        const key = `${t.lostId}-${t.foundId}`;
+        const otherId = t.lostOwner.id === currentUser.id ? t.foundOwner.id : t.lostOwner.id;
+        const other = { name: userNames[otherId] || 'Someone' };
+        const unread = (chatThreads[key] || []).filter(m => m.senderId !== currentUser.id && !m.read).length;
+        if (key === activeChatKey) {
+          $('chat-with-name').textContent = other.name;
+          $('chat-header-avatar').textContent = other.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+        }
+        return `
+          <div class="chat-thread-item ${key === activeChatKey ? 'active' : ''}" onclick="selectChatThread('${key}')">
+            <div class="thread-avatar">${esc(other.name[0])}</div>
+            <div class="thread-details"><b>${esc(other.name)}</b><span>Lost &amp; Found</span></div>
+            ${unread > 0 ? `<div class="thread-unread-badge">${unread}</div>` : ''}
+          </div>`;
+      }).join('');
+
+      renderChatMessages();
+    }
+
+    function renderRequestsPane(incoming) {
+      const sent = sentRequests();
+      const nameOf = id => userNames[id] || 'Someone';
+      const itemName = id => esc(reports.find(r => r.id === id)?.name || 'Item');
+      let html = '<div class="req-group">Received</div>';
+      html += incoming.length ? incoming.map(t => `
+        <div class="req-card">
+          <b>${esc(nameOf(t.requesterId))} wants to claim your found item</b>
+          <p>Found: ${itemName(t.foundId)} · Their lost report: ${itemName(t.lostId)}</p>
+          <div class="req-actions">
+            <button class="btn btn-sm" onclick="respondRequest(${t.id}, true)">Accept</button>
+            <button class="btn btn-outline btn-sm" onclick="respondRequest(${t.id}, false)">Decline</button>
+          </div>
+        </div>`).join('') : '<div style="padding:4px 18px 8px;color:var(--mute);font-size:13px">No new requests</div>';
+      html += '<div class="req-group">Sent</div>';
+      html += sent.length ? sent.map(t => `
+        <div class="req-card">
+          <b>${itemName(t.lostId)} → ${esc(nameOf(finderOf(t)))}</b>
+          <p>Matched with found item: ${itemName(t.foundId)}</p>
+          <div class="req-actions">
+            <span class="req-status ${t.status}">${({ pending: 'Pending', approved: 'Accepted', declined: 'Declined', completed: 'Returned' })[t.status] || t.status}</span>
+            ${t.status === 'pending' ? `<button class="link" onclick="cancelRequest(${t.id})">Cancel</button>` : ''}
+          </div>
+        </div>`).join('') : '<div style="padding:4px 18px 8px;color:var(--mute);font-size:13px">You haven\'t sent any requests</div>';
+      return html;
+    }
+
+    function selectChatThread(key) {
+      activeChatKey = key;
+      $('chat-portal-box').classList.add('mobile-view-chat');
+      renderChatPortal();
+    }
+
+    function renderChatMessages() {
+      const msgs = chatThreads[activeChatKey] || [];
+      const body = $('chat-msgs-body');
+      body.innerHTML = msgs.map(m => `
+        <div class="chat-msg-wrapper ${m.senderId === currentUser.id ? 'mine' : ''}">
+          <div class="chat-msg-group">
+            <div class="chat-msg ${m.senderId === currentUser.id ? 'mine' : 'theirs'}" id="msg-${m.id}">
+              ${m.id === editingId ? `
+                <input class="edit-mode-input" id="edit-input-${m.id}" type="text" value="${esc(editDraft)}" oninput="editDraft=this.value" onkeydown="if(event.key==='Enter'){event.preventDefault();saveEditedMessage(${m.id})}else if(event.key==='Escape'){cancelEdit(${m.id})}">
+                <div class="edit-mode-actions">
+                  <button class="save-btn" onclick="saveEditedMessage(${m.id})">Save</button>
+                  <button class="cancel-btn" onclick="cancelEdit(${m.id})">Cancel</button>
+                </div>
+              ` : `
+                <div>${esc(m.text)}</div>
+                <div class="chat-msg-meta">
+                  <span class="chat-time">${m.time || ''}</span>
+                  ${m.edited ? '<span class="msg-edited-badge">(edited)</span>' : ''}
+                </div>
+              `}
+            </div>
+            ${m.senderId === currentUser.id && m.id !== editingId ? `
+              <div class="msg-menu">
+                <button class="msg-menu-btn" onclick="toggleMsgMenu(event, ${m.id})">⋯</button>
+                <div class="msg-menu-dropdown" id="menu-${m.id}">
+                  <div class="msg-menu-option" onclick="startEditMessage(${m.id})">✏️ Edit</div>
+                  <div class="msg-menu-option delete" onclick="deleteMessage(${m.id})">🗑️ Delete</div>
+                </div>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `).join('');
+      if (editingId === null) body.scrollTop = body.scrollHeight;
+    }
+
+    function toggleMsgMenu(ev, msgId) {
+      ev.stopPropagation();
+      const menu = $(`menu-${msgId}`);
+      const wasOpen = menu?.classList.contains('show');
+      document.querySelectorAll('.msg-menu-dropdown').forEach(m => m.classList.remove('show'));
+      if (menu && !wasOpen) menu.classList.add('show');
+    }
+
+    function startEditMessage(msgId) {
+      const msg = (chatThreads[activeChatKey] || []).find(m => m.id === msgId);
+      if (!msg) return;
+      editingId = msg.id;
+      editDraft = msg.text;
+      renderChatMessages();
+      setTimeout(() => {
+        const inp = $(`edit-input-${msgId}`);
+        if (inp) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length) }
+      }, 30);
+    }
+
+    async function saveEditedMessage(msgId) {
+      const msg = (chatThreads[activeChatKey] || []).find(m => m.id === msgId);
+      const newText = (editDraft || '').trim();
+      if (!msg) return;
+      if (!newText) { showToast('Message cannot be empty'); return }
+      try {
+        if (newText !== msg.text) {
+          await api(`/requests/messages/${msgId}`, jsonOpts('PATCH', { text: newText }));
+          msg.text = newText; msg.edited = true; showToast('Message edited!');
+        }
+      } catch (e) { showToast(e.message); return }
+      editingId = null; editDraft = '';
+      renderChatMessages();
+    }
+
+    function cancelEdit(msgId) {
+      editingId = null; editDraft = '';
+      renderChatMessages();
+    }
+
+    async function deleteMessage(msgId) {
+      if (!confirm('Delete this message?')) return;
+      try {
+        await api(`/requests/messages/${msgId}`, jsonOpts('DELETE'));
+        chatThreads[activeChatKey] = chatThreads[activeChatKey].filter(m => m.id !== msgId);
+        renderChatMessages();
+        showToast('Message deleted!');
+      } catch (e) { showToast(e.message) }
+    }
+
+    function hasActiveChat() {
+      return meetRequests.some(t => t.status === 'approved' && `${t.lostId}-${t.foundId}` === activeChatKey && threadUsers(t).includes(currentUser.id));
+    }
+    function updateComposer() {
+      const ok = hasActiveChat();
+      $('chat-input').disabled = !ok;
+      $('chat-input').placeholder = ok ? 'Type a message...' : 'Chat opens after the finder accepts your request';
+      document.querySelectorAll('.chat-send-btn, .chip-btn').forEach(b => b.disabled = !ok);
+    }
+
+    async function handleSendChat(e) {
+      e.preventDefault();
+      const input = $('chat-input');
+      const text = input?.value?.trim();
+      if (!text) return;
+      if (!hasActiveChat()) { showToast('Chat opens after the finder accepts the request'); return }
+      const t = meetRequests.find(t => `${t.lostId}-${t.foundId}` === activeChatKey && t.status === 'approved');
+      if (!t) return;
+      input.value = '';
+      try {
+        const { message } = await api(`/requests/${t.id}/messages`, jsonOpts('POST', { text }));
+        if (!chatThreads[activeChatKey]) chatThreads[activeChatKey] = [];
+        chatThreads[activeChatKey].push({ ...message, time: fmtTime(message.createdAt) });
+        renderChatMessages();
+      } catch (err) { input.value = text; showToast(err.message) }
+    }
+
+    function sendQuickReply(text) {
+      if (!hasActiveChat()) { showToast('Chat opens after the finder accepts the request'); return }
+      $('chat-input').value = text;
+      handleSendChat(new Event('submit'));
+    }
+
+    async function markChatHandoverComplete() {
+      const t = meetRequests.find(t => `${t.lostId}-${t.foundId}` === activeChatKey && t.status === 'approved');
+      if (!t) return;
+      if (!confirm('Mark this item as returned? This closes the chat.')) return;
+      try {
+        await api(`/requests/${t.id}/complete`, jsonOpts('POST'));
+        await Promise.all([loadReports(), loadRequests()]);
+        updateStats(); updateActivityFeed(); renderMatches(); renderChatPortal(); performSearch();
+        showToast('Item marked as returned!');
+      } catch (e) { showToast(e.message) }
+    }
+
+    function updateMessageBadge() {
+      const totalUnread = Object.entries(chatThreads).reduce((sum, [k, msgs]) => {
+        const t = meetRequests.find(t => `${t.lostId}-${t.foundId}` === k && t.status === 'approved');
+        return sum + (t && threadUsers(t).includes(currentUser.id) ? msgs.filter(m => m.senderId !== currentUser.id && !m.read).length : 0);
+      }, 0);
+
+      const badge = $('chat-badge');
+      const total = totalUnread + incomingRequests().length;
+      if (total > 0) {
+        badge.textContent = total;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+    }
+
+    function updateStats() {
+      const lost = reports.filter(r => r.type === 'lost' && !r.done).length;
+      const found = reports.filter(r => r.type === 'found' && !r.done).length;
+      const openLost = reports.filter(r => r.type === 'lost' && !r.done && r.userId === currentUser.id);
+      const matchCount = openLost.reduce((sum, l) => sum + findMatches(l).length, 0);
+      const completed = meetRequests.filter(t => t.status === 'completed').length;
+
+      $('stat-lost').textContent = lost;
+      $('stat-found').textContent = found;
+      $('stat-matched').textContent = matchCount;
+      $('stat-complete').textContent = completed;
+    }
+
+    function performSearch() {
+      const q = $('search-input').value.toLowerCase().trim();
+      const res = q
+        ? reports.filter(r => [r.name, r.cat, r.color, r.brand, r.loc].some(v => v?.toLowerCase().includes(q)))
+        : reports.filter(r => r.type === 'lost' && !r.done);
+      $('search-results').innerHTML = res.length ? res.map(rowHtml).join('') : `<div class="empty">${q ? 'No results found' : 'No lost items yet'}</div>`;
+    }
+
+    function showToast(msg) {
+      document.querySelectorAll('.toast').forEach(x => x.remove());
+      const t = document.createElement('div');
+      t.className = 'toast';
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 3200);
+    }
+
+    function dismissLoader() {
+      const l = $('loader');
+      if (l) {
+        l.classList.add('done');
+        setTimeout(() => l.remove(), 950);
+      }
+    }
+
+    async function init() {
+  meetRequests = [];
+  chatThreads = {};
+
+  const d = new Date();
+  const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const lDateEl = $('l-date');
+  const fDateEl = $('f-date');
+  if (lDateEl) { lDateEl.value = today; lDateEl.max = today }
+  if (fDateEl) { fDateEl.value = today; fDateEl.max = today }
+
+  if (token) {
+    try {
+      const me = await api('/auth/me');
+      currentUser = me.user;
+      await Promise.all([loadReports(), loadRequests()]);
+      startLive();
+      syncUserUI();
+      performSearch();
+      return;
+    } catch (e) { /* fall through to login screen */ }
+  }
+  $('auth-screen').hidden = false;
+}
+
+    $('word').innerHTML = 'FindBack'.split('').map((c, i) => `<span style="--i:${i}">${c}</span>`).join('');
+    $('loader').addEventListener('click', dismissLoader);
+    const boot = () => { init(); placeInk(); setTimeout(dismissLoader, 2200) };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+    window.addEventListener('load', placeInk);
+    document.addEventListener('keydown', e => {
+      if (e.key !== 'Escape') return;
+      closeAlert(); closeCamera(); closeRequestModal();
+    });
+    window.addEventListener('resize', placeInk);
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.location-wrapper')) {
+        document.querySelectorAll('.location-dropdown').forEach(d => d.classList.remove('active'));
+      }
+      document.querySelectorAll('.msg-menu-dropdown').forEach(m => m.classList.remove('show'));
+    });
+    
+  </script>
+</body>
+
+</html>
